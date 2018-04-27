@@ -33,7 +33,7 @@
 						<div class="form-group text-right">
 							<div class="col-sm-12">
 % if e.addr != None:
-								<a class="btn btn-primary" href="/cab/drive/${e.addr}">Drive!</a>
+								<a class="btn btn-primary" href="/cab/drive?id=${e.addr}">Drive!</a>
 % endif
 								<input type="submit" class="btn btn-default" value="Save">
 								<a class="btn btn-default" href="/shed/delete?id=${e.id}"

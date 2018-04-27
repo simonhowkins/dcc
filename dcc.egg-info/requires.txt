@@ -1,0 +1,6 @@
+pyramid
+waitress
+sqlalchemy
+pyramid_tm
+zope.sqlalchemy
+pyramid_mako

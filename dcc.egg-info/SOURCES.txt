@@ -1,0 +1,6 @@
+dcc.egg-info/PKG-INFO
+dcc.egg-info/SOURCES.txt
+dcc.egg-info/dependency_links.txt
+dcc.egg-info/entry_points.txt
+dcc.egg-info/requires.txt
+dcc.egg-info/top_level.txt

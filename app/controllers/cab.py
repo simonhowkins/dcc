@@ -14,3 +14,10 @@ class CabController(object):
             "addr": id,
         }
 
+    @action(renderer='json')
+    def update(self):
+        return {
+            "speed": int(self.request.params.get("throttle")),
+            "direction": int(self.request.params.get("direction")),
+        }
+

@@ -30,7 +30,7 @@ def main(global_config, **settings):
         with transaction.manager:
             model = Engine(addr=3, nickname='Boxfresh Loco')
             DBSession.add(model)
-            DBSession.commit()
+            transaction.commit()
 
     # Init web app
     settings["DBSession"] = DBSession

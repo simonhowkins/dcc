@@ -5,6 +5,7 @@ setup(
     name = 'dcc',
     install_requires = [
         'pyramid',
+        'pyramid_handlers',
         'waitress',
         'sqlalchemy',
         'pyramid_tm',

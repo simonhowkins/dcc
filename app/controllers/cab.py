@@ -19,6 +19,7 @@
 # Source for this program is published at https://github.com/simonhowkins/dcc
 
 from pyramid_handlers import action
+from app.models.dcc_channel import DccChannel
 
 class CabController(object):
 
@@ -34,8 +35,11 @@ class CabController(object):
 
     @action(renderer='json')
     def update(self):
+        channel = DccChannel(self.request.params.get("id"))
+        channel.throttle = int(self.request.params.get("throttle"))
+        channel.direction = int(self.request.params.get("direction"))
         return {
-            "speed": int(self.request.params.get("throttle")),
-            "direction": int(self.request.params.get("direction")),
+            "speed": channel.speed,
+            "direction": channel.direction,
         }
 

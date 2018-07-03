@@ -59,6 +59,11 @@
 				value: 0,
 				max: 28,
 			});
+			$("input[name=direction]").change(function() {
+				doUpdate({
+					direction: this.value,
+				});
+			});
 			var doUpdate = function(data) {
 				$.post({
 					url: "/cab/update?id=${addr}",
@@ -67,6 +72,9 @@
 						$("#speedo").progressbar("value", status.speed);
 						$("#speed").val(status.speed);
 						$("#throttle").slider("value", status.throttle);
+						$("input[name=direction]").filter(function() {
+							return this.value == status.direction;
+						}).closest(".btn").button("toggle");
 					},
 					dataType: "json",
 				});

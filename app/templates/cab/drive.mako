@@ -49,24 +49,30 @@
 				min: 0,
 				max: 28,
 				value: 0,
+				slide: function(event, ui) {
+					doUpdate({
+						throttle: ui.value,
+					});
+				}
 			});
 			$("#speedo").progressbar({
 				value: 0,
 				max: 28,
 			});
-			setInterval(function() {
+			var doUpdate = function(data) {
 				$.post({
 					url: "/cab/update?id=${addr}",
-					data: {
-						throttle: $("#throttle").slider("value"),
-						direction: $("input[name=direction]:checked").val(),
-					},
+					data: data,
 					success: function(status) {
 						$("#speedo").progressbar("value", status.speed);
 						$("#speed").val(status.speed);
+						$("#throttle").slider("value", status.throttle);
 					},
 					dataType: "json",
 				});
+			};
+			setInterval(function() {
+				doUpdate({});
 			}, 200);
 		});
 	</script>

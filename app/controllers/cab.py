@@ -23,22 +23,26 @@ from app.models.dcc_channel import DccChannel
 
 class CabController(object):
 
+    # The lifetime of these objects is a single HTTP request
     def __init__(self, request):
         self.request = request
+        self.addr = self.request.params.get("id", None)
 
     @action(renderer="app:templates/cab/drive.mako")
     def drive(self):
-        id = self.request.params.get("id", None)
         return {
-            "addr": id,
+            "addr": self.addr,
         }
 
     @action(renderer='json')
     def update(self):
-        channel = DccChannel(self.request.params.get("id"))
-        channel.throttle = int(self.request.params.get("throttle"))
-        channel.direction = int(self.request.params.get("direction"))
+        channel = DccChannel(self.addr)
+        if ("throttle" in self.request.params):
+            channel.throttle = int(self.request.params.get("throttle"))
+        if ("direction" in self.request.params):
+            channel.direction = int(self.request.params.get("direction"))
         return {
+            "throttle": channel.throttle,
             "speed": channel.speed,
             "direction": channel.direction,
         }

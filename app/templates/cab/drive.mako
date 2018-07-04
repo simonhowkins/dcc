@@ -75,6 +75,7 @@
 						$("input[name=direction]").filter(function() {
 							return this.value == status.direction;
 						}).closest(".btn").button("toggle");
+						$("input[name=direction]").closest(".btn").toggleClass("disabled", status.throttle !== 0 || status.speed !== 0);
 					},
 					dataType: "json",
 				});

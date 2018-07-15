@@ -33,8 +33,10 @@ from pyramid.response import Response
 import app.controllers
 from app.models import Base
 from app.models.engine import Engine
+import app.services.dcclib
 
 def main(global_config, **settings):
+    app.services.dcclib.unit_test()
     # Init hardware (GPIOs, clocks, PWM, DMA)
 
     # Init database

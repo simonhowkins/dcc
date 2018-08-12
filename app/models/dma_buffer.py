@@ -81,7 +81,7 @@ class DmaBuffer:
 
     @staticmethod
     def unit_test():
-        print "unit testing DmaBuffer"
+        print("unit testing DmaBuffer")
         buffer1 = DmaBuffer(128, 0)
         buffer1.buffer[18] = 45
         assert buffer1[18] == 45

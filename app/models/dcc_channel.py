@@ -16,26 +16,51 @@
 #
 # Source for this program is published at https://github.com/simonhowkins/dcc
 
+from app.services import dcclib
+from app.models.dma_buffer import DmaBuffer
+
 """DCC Channel model
 
 Ie an encapsulation of a DCC address and the activity occurring on that
 channel"""
+
+DmaBuffer.unit_test()
 
 class DccChannel(object):
     # Class constants:
     FORWARDS  = 1
     BACKWARDS = -1
 
-    MAX_ADDR = 126
+    MAX_ADDR = 30
     assert MAX_ADDR < 127
+    BYTES_PER_CHANNEL = 16
 
     # Class attributes:
     # The singleton status of *all* channels
     _channels = [{
-        "direction": 1, # Ie, FORWARDS, except Python 3 blocks that
-        "speed": 0,
         "throttle": 0,
-    } for a in range(1, MAX_ADDR)]
+    }] * MAX_ADDR
+    # The array starts at index 0 (duh) which is not a drivable channel,
+    # but it can be safely ignored
+
+    run_buffer = DmaBuffer(MAX_ADDR * BYTES_PER_CHANNEL, 0)
+
+    def peek_instruction(buf, fromAddr):
+        offset = fromAddr * DccChannel.BYTES_PER_CHANNEL
+        instBytes = buf[offset:offset + DccChannel.BYTES_PER_CHANNEL]
+        (instAddr, instType, (direction, speed)) = dcclib.decode_instruction(dcclib.decode_stream(dcclib.decode_signal(dcclib.to_binary_array(instBytes))))
+        assert instAddr == fromAddr
+        assert instType == "SPEED"
+        assert direction in [True, False]
+        assert speed >= 0
+        assert speed <= 28
+        return (direction, speed)
+
+    def poke_instruction(buf, addr, instruction):
+        offset = addr * DccChannel.BYTES_PER_CHANNEL
+        bytes_to_poke = dcclib.to_bytes(dcclib.round_up(dcclib.to_signal(dcclib.to_stream(instruction))))
+        assert len(bytes_to_poke) <= DccChannel.BYTES_PER_CHANNEL
+        buf[offset:offset + len(bytes_to_poke)] = bytes_to_poke
 
     def __init__(self, addr):
         # Instance attributes:
@@ -48,9 +73,6 @@ class DccChannel(object):
     def _valid(self):
         assert self._addr > 0
         assert self._addr <= DccChannel.MAX_ADDR
-        assert self._channels[self._addr]["direction"] in [DccChannel.FORWARDS, DccChannel.BACKWARDS]
-        assert self._channels[self._addr]["speed"] >= 0
-        assert self._channels[self._addr]["speed"] <= 28
         assert self._channels[self._addr]["throttle"] >= 0
         assert self._channels[self._addr]["throttle"] <= 28
         return True
@@ -63,26 +85,30 @@ class DccChannel(object):
     @property
     def direction(self):
         assert self._valid()
-        return self._channels[self._addr]["direction"]
+        (direction, speed) = DccChannel.peek_instruction(DccChannel.run_buffer, self._addr)
+        return DccChannel.FORWARDS if direction else DccChannel.BACKWARDS
 
     @direction.setter
     def direction(self, direction):
         assert self._valid()
         assert direction in [DccChannel.FORWARDS, DccChannel.BACKWARDS], str(direction)
-        if (self._channels[self._addr]["speed"] == 0):
-            self._channels[self._addr]["direction"] = direction
+        (prevDirection, speed) = DccChannel.peek_instruction(DccChannel.run_buffer, self._addr)
+        if (speed == 0):
+            DccChannel.poke_instruction(DccChannel.run_buffer, self._addr, dcclib.speed_instruction(self._addr, direction == DccChannel.FORWARDS, 0))
 
     @property
     def speed(self):
         assert self._valid()
-        return self._channels[self._addr]["speed"]
+        (direction, speed) = DccChannel.peek_instruction(DccChannel.run_buffer, self._addr)
+        return speed
 
     @speed.setter
     def speed(self, speed):
         assert self._valid()
         assert speed >= 0
         assert speed <= 28
-        self._channels[self._addr]["speed"] = speed
+        (direction, prevSpeed) = DccChannel.peek_instruction(DccChannel.run_buffer, self._addr)
+        DccChannel.poke_instruction(DccChannel.run_buffer, self._addr, dcclib.speed_instruction(self._addr, direction, speed))
 
     @property
     def throttle(self):
@@ -95,7 +121,8 @@ class DccChannel(object):
         assert throttle >= 0
         assert throttle <= 28
         self._channels[self._addr]["throttle"] = throttle
-        self._channels[self._addr]["speed"] = throttle
+        # As an interim measure, immediately set the speed to match the throttle
+        self.speed = throttle
 
 def unit_test():
     assert DccChannel(1).addr == 1
@@ -113,4 +140,11 @@ def unit_test():
     assert a.speed == b.speed
     assert a.direction == b.direction
     assert a.throttle == b.throttle
+    a.speed = 0
+    a.throttle = 0
+    a.direction = DccChannel.FORWARDS
+
+DccChannel.poke_instruction(DccChannel.run_buffer, 0, dcclib.idle_instruction())
+for addr in range(1, DccChannel.MAX_ADDR):
+    DccChannel.poke_instruction(DccChannel.run_buffer, addr, dcclib.speed_instruction(addr, True, 0))
 

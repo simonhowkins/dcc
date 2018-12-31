@@ -63,13 +63,19 @@
 						<div class="form-group">
 							<label class="col-sm-3 control-label">Acceleration</label>
 							<div class="col-sm-9">
-								<input type="number" disabled class="form-control" min="1" max="10">
+								<div class="input-group">
+									<input type="number" class="form-control" name="acceleration" required min="1" max="100" value="${e.acceleration}">
+									<div class="input-group-addon">%</div>
+								</div>
 							</div>
 						</div>
 						<div class="form-group">
 							<label class="col-sm-3 control-label">Braking</label>
 							<div class="col-sm-9">
-								<input type="number" disabled class="form-control" min="1" max="10">
+								<div class="input-group">
+									<input type="number" class="form-control" name="braking" required min="1" max="100" value="${e.braking}">
+									<div class="input-group-addon">%</div>
+								</div>
 							</div>
 						</div>
 					</form>
@@ -111,13 +117,19 @@
 				<div class="form-group">
 					<label class="col-sm-3 control-label">Acceleration</label>
 					<div class="col-sm-9">
-						<input type="number" disabled class="form-control" min="1" max="10">
+						<div class="input-group">
+							<input type="number" class="form-control" name="acceleration" required min="1" max="100" value="100">
+							<div class="input-group-addon">%</div>
+						</div>
 					</div>
 				</div>
 				<div class="form-group">
 					<label class="col-sm-3 control-label">Braking</label>
 					<div class="col-sm-9">
-						<input type="number" disabled class="form-control" min="1" max="10">
+						<div class="input-group">
+							<input type="number" class="form-control" name="braking" required min="1" max="100" value="100">
+							<div class="input-group-addon">%</div>
+						</div>
 					</div>
 				</div>
 			</div>

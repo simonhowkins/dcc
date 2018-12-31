@@ -30,11 +30,15 @@ class Engine(Base):
     addr = Column(Integer)
 
     maxSpeed = Column(Integer)
+    acceleration = Column(Integer)
+    braking = Column(Integer)
 
-    def __init__(self, nickname='', addr=0, maxSpeed=28):
+    def __init__(self, nickname='', addr=0, maxSpeed=28, acceleration=100, braking=100):
         self.nickname = nickname
         self.addr = addr
         self.maxSpeed = maxSpeed
+        self.acceleration = acceleration
+        self.braking = braking
 
     def __repr__(self):
         return "Engine[nickname=%s,addr=%s]" % (self.nickname, self.addr)

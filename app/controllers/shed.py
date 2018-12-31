@@ -50,9 +50,10 @@ class ShedController(object):
 
     def add(self):
         nickname = self.request.params.getone("nickname")
-        addr = int("0" + self.request.params.getone("addr")[0])
+        addr = int("0" + self.request.params.getone("addr"))
+        maxSpeed = int(self.request.params.getone("maxSpeed"))
 
-        e = Engine(nickname, addr)
+        e = Engine(nickname, addr, maxSpeed)
         self.dbSession.add(e)
         self.request.tm.commit()
 
@@ -63,6 +64,7 @@ class ShedController(object):
         e = self.engine_q.get(id)
         e.nickname = self.request.params.getone("nickname")
         e.addr = self.request.params.getone("addr")
+        e.maxSpeed = self.request.params.getone("maxSpeed")
         self.request.tm.commit()
         raise HTTPFound(self.request.route_url("shed", action="index", _query={"id": id}))
 

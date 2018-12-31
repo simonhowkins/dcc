@@ -33,7 +33,7 @@
 						<div class="form-group text-right">
 							<div class="col-sm-12">
 % if e.addr != None:
-								<a class="btn btn-primary" href="/cab/drive?id=${e.addr}">Drive!</a>
+								<a class="btn btn-primary" href="/cab/drive?id=${e.id}">Drive!</a>
 % endif
 								<input type="submit" class="btn btn-default" value="Save">
 								<a class="btn btn-default" href="/shed/delete?id=${e.id}"
@@ -57,7 +57,7 @@
 						<div class="form-group">
 							<label class="col-sm-3 control-label">Max Speed</label>
 							<div class="col-sm-9">
-								<input type="number" disabled class="form-control" min="1" max="28" value="28">
+								<input type="number" class="form-control" name="maxSpeed" required min="1" max="28" value="${e.maxSpeed}">
 							</div>
 						</div>
 						<div class="form-group">
@@ -105,7 +105,7 @@
 				<div class="form-group">
 					<label class="col-sm-3 control-label">Max Speed</label>
 					<div class="col-sm-9">
-						<input type="number" disabled class="form-control" min="1" max="28" value="28">
+						<input type="number" name="maxSpeed" class="form-control" required min="1" max="28" value="28">
 					</div>
 				</div>
 				<div class="form-group">

@@ -47,7 +47,7 @@
 			$("#throttle").slider({
 				orientation: "vertical",
 				min: 0,
-				max: 28,
+				max: ${maxSpeed},
 				value: 0,
 				slide: function(event, ui) {
 					doUpdate({
@@ -57,7 +57,7 @@
 			});
 			$("#speedo").progressbar({
 				value: 0,
-				max: 28,
+				max: ${maxSpeed},
 			});
 			$("input[name=direction]").change(function() {
 				doUpdate({

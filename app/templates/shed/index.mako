@@ -51,7 +51,7 @@
 						<div class="form-group">
 							<label class="col-sm-3 control-label">DCC Address</label>
 							<div class="col-sm-9">
-								<input type="text" class="form-control" name="addr" value="${e.addr if e.addr else ''}">
+								<input type="number" class="form-control" name="addr" min="1" max="10" value="${e.addr if e.addr else ''}">
 							</div>
 						</div>
 						<div class="form-group">
@@ -105,7 +105,7 @@
 				<div class="form-group">
 					<label class="col-sm-3 control-label">DCC Address</label>
 					<div class="col-sm-9">
-						<input type="text" name="addr" class="form-control" value="">
+						<input type="number" name="addr" class="form-control" min="1" max="10" value="">
 					</div>
 				</div>
 				<div class="form-group">

@@ -37,6 +37,9 @@ class CabController(object):
         dbSession = app.controllers.settings["DBSession"]
         engine_q = dbSession.query(Engine)
         e = engine_q.get(id)
+        # Associate the channel with the engine
+        channel = DccChannel(e.addr)
+        channel.engine = e
         return {
             "addr": e.addr,
             "maxSpeed": e.maxSpeed,

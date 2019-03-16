@@ -16,6 +16,10 @@
 #
 # Source for this program is published at https://github.com/simonhowkins/dcc
 
+import atexit
+
+from apscheduler.schedulers.background import BackgroundScheduler
+
 from app.services import dcclib
 from app.models.dma_buffer import DmaBuffer
 
@@ -39,11 +43,17 @@ class DccChannel(object):
     # The singleton status of *all* channels
     _channels = [{
         "throttle": 0,
+        "speedAdjusterJob": None,
     }] * MAX_ADDR
     # The array starts at index 0 (duh) which is not a drivable channel,
     # but it can be safely ignored
 
     run_buffer = DmaBuffer(MAX_ADDR * BYTES_PER_CHANNEL, 0)
+
+    scheduler = BackgroundScheduler()
+    scheduler.start()
+
+    atexit.register(lambda: DccChannel.scheduler.shutdown(wait=False))
 
     def peek_instruction(buf, fromAddr):
         offset = fromAddr * DccChannel.BYTES_PER_CHANNEL
@@ -110,6 +120,10 @@ class DccChannel(object):
         (direction, prevSpeed) = DccChannel.peek_instruction(DccChannel.run_buffer, self._addr)
         DccChannel.poke_instruction(DccChannel.run_buffer, self._addr, dcclib.speed_instruction(self._addr, direction, speed))
 
+    def _setSpeed(self, speed):
+        (direction, prevSpeed) = DccChannel.peek_instruction(DccChannel.run_buffer, self._addr)
+        DccChannel.poke_instruction(DccChannel.run_buffer, self._addr, dcclib.speed_instruction(self._addr, direction, speed))
+
     @property
     def throttle(self):
         assert self._valid()
@@ -121,8 +135,49 @@ class DccChannel(object):
         assert throttle >= 0
         assert throttle <= 28
         self._channels[self._addr]["throttle"] = throttle
-        # As an interim measure, immediately set the speed to match the throttle
-        self.speed = throttle
+        self._setSpeedAdjuster(throttle)
+
+    def _clearSpeedAdjuster(self):
+        if self._channels[self._addr]["speedAdjusterJob"] != None:
+            self._channels[self._addr]["speedAdjusterJob"].remove()
+            self._channels[self._addr]["speedAdjusterJob"] = None
+
+    def _setSpeedAdjuster(self, destinationSpeed):
+        # How does the required speed compare to the current speed...
+        currentSpeed = self.speed
+
+        # If going at the right speed, remove the speedAdjuster, job done
+        if currentSpeed == destinationSpeed:
+            self._clearSpeedAdjuster()
+            return
+
+        # Work out how to adjust the speed, if at all
+        adjustment = 0
+        if currentSpeed < destinationSpeed:
+            # We need to accelerate
+            adjustment = 1
+        elif currentSpeed > destinationSpeed:
+            # We need to brake
+            adjustment = -1
+
+        def doIt():
+            currentSpeed = self.speed
+            # Work out how to adjust the speed, if at all
+            adjustment = 0
+            if currentSpeed < destinationSpeed:
+                adjustment = 1
+            elif currentSpeed > destinationSpeed:
+                adjustment = -1
+            # If speed needs adjusting, adjust it
+            if adjustment != 0:
+                currentSpeed = currentSpeed + adjustment
+                self.speed = currentSpeed
+            # If now going at the right speed, remove the speedAdjuster
+            if currentSpeed == destinationSpeed:
+                self._clearSpeedAdjuster()
+
+        self._clearSpeedAdjuster()
+        self._channels[self._addr]["speedAdjusterJob"] = self.scheduler.add_job(doIt, "interval", seconds=0.2)
 
 def unit_test():
     assert DccChannel(1).addr == 1

@@ -73,6 +73,15 @@ def lock(addr, count):
     # TODO: Do we also need to do something so that the kernel won't change the
     # physical address for this virtual address?
 
+# Word read
+def peek(buffer, offset):
+    assert offset & 0x3 == 0
+    return struct.unpack_from("<L", buffer, offset)[0]
+# Word write
+def poke(buffer, offset, value):
+    assert offset & 0x3 == 0
+    struct.pack_into("<L", buffer, offset, value)
+
 def unit_test():
     print("Unit testing memlib")
     registers = physicalToVirtual(0x3F000000, 0x00010000)

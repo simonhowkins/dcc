@@ -19,7 +19,6 @@
 """GPIO functions
 """
 
-import struct
 import app.services.memlib as memlib
 
 registers = None
@@ -64,6 +63,30 @@ def setFunction(gpio, function):
     regval = regval |  (function << shift)
     memlib.poke(registers, register, regval)
 
+# Returns the value of a GPIO input - 0 or 1
+def read(gpio):
+    assert gpio >= 0
+    assert gpio <= 53
+    register = 0x34 + (gpio // 32) * 4
+    shift = gpio % 32
+    regval = memlib.peek(registers, register)
+    return (regval >> shift) & 1
+
+# Sets the value of a GPIO output - 0 or 1
+def write(gpio, value):
+    assert gpio >= 0
+    assert gpio <= 53
+    assert value in [0, 1]
+    if value == 0:
+        # Write to the CLEAR register
+        regBase = 0x28
+    else:
+        # Write to the SET register
+        regBase = 0x1C
+    register = regBase + (gpio // 32) * 4
+    shift = gpio % 32
+    memlib.poke(registers, register, 1 << shift)
+
 def unit_test():
     print("unit testing gpiolib")
     setFunction(18, "r")
@@ -97,8 +120,52 @@ def unit_test():
             exceptionThrown = True
         assert exceptionThrown, "No exception thrown when calling setFunction({}, {})".format(repr(gpio), repr(function))
 
-    for gpio in range(0, 20):
-        print("GPIO {:02} function = {}".format(gpio, getFunction(gpio)))
+    assert read(0) in [0, 1]
+    assert read(1) in [0, 1]
+    assert read(18) in [0, 1]
+    assert read(19) in [0, 1]
+    assert read(53) in [0, 1]
+
+    for gpio in [-1, 54, "booblyboo"]:
+        exceptionThrown = False
+        try:
+            read(gpio)
+        except:
+            exceptionThrown = True
+        assert exceptionThrown, "No exception thrown when calling read({})".format(repr(gpio))
+
+    write(18, 0)
+    write(18, 1)
+    write(19, 0)
+    write(19, 1)
+
+    for (gpio, value) in [
+        (-1, 0),
+        (54, 1),
+        ("?", 1),
+        (19, 2),
+        (19, -1),
+    ]:
+        exceptionThrown = False
+        try:
+            write(gpio, value)
+        except:
+            exceptionThrown = True
+        assert exceptionThrown, "No exception thrown when calling write({}, {})".format(repr(gpio), repr(value))
+
+    setFunction(18, "W")
+    setFunction(19, "W")
+    write(18, 0)
+    assert read(18) == 0
+    write(18, 1)
+    assert read(18) == 1
+    write(19, 0)
+    assert read(18) == 1
+    assert read(19) == 0
+    write(18, 0)
+    write(19, 1)
+    assert read(18) == 0
+    assert read(19) == 1
 
     print("gpiolib unit tests complete")
 

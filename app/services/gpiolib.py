@@ -87,6 +87,10 @@ def write(gpio, value):
     shift = gpio % 32
     memlib.poke(registers, register, 1 << shift)
 
+def dump():
+    for r in range(0x00, 0xA0, 4):
+        print("GPIO 0x{:08x} = 0x{:08x}".format(r, memlib.peek(registers, r)))
+
 def unit_test():
     print("unit testing gpiolib")
     setFunction(18, "r")

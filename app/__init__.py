@@ -35,6 +35,7 @@ from app.models import Base
 from app.models.engine import Engine
 import app.services.dcclib
 import app.services.memlib as mem
+import app.services.gpiolib
 
 def main(global_config, **settings):
     app.services.dcclib.unit_test()

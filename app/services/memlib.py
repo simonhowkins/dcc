@@ -82,6 +82,12 @@ def poke(buffer, offset, value):
     assert offset & 0x3 == 0
     struct.pack_into("<L", buffer, offset, value)
 
+def orr(buffer, offset, value):
+    poke(buffer, offset, peek(buffer, offset) | value)
+
+def bic(buffer, offset, value):
+    poke(buffer, offset, peek(buffer, offset) & ~value)
+
 def unit_test():
     print("Unit testing memlib")
     registers = physicalToVirtual(0x3F000000, 0x00010000)
@@ -92,8 +98,14 @@ def unit_test():
     memory = (c_ubyte * count * 2)()
     # Get an aligned pointer within the block
     memory = (c_ubyte * count).from_address(addressof(memory) & ~(mmap.ALLOCATIONGRANULARITY - 1))
-    print("Using virt addr {}".format(hex(addressof(memory))))
+    print("Using virt addr 0x{:08X}".format(addressof(memory)))
     memory[0:4] = b"1234"
+    assert peek(memory, 0) == 0x34333231
+    orr(memory, 0, 0xFF)
+    assert peek(memory, 0) == 0x343332FF
+    bic(memory, 0, 0xFF)
+    assert peek(memory, 0) == 0x34333200
+    poke(memory, 0, 0x34333231)
     # Locate the physical address of the memory being used
     physAddr = virtualToPhysical(addressof(memory))
     physAddr = physAddr & ~(mmap.ALLOCATIONGRANULARITY - 1)
